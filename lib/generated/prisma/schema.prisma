@@ -1,0 +1,120 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../lib/generated/prisma"
+  previewFeatures = ["fullTextIndex", "fullTextSearch"]
+}
+
+datasource db {
+  provider     = "mongodb"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  role Role @default(user) // Add role field with default value
+
+  jobs Job[] @relation("UserJobs")
+}
+
+model Job {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], name: "UserJobs")
+
+  title             String
+  description       String?
+  short_description String?
+  imageUrl          String?
+  isPublished       Boolean  @default(false)
+  tags              String[]
+  savedUsers        String[]
+
+  employmentType    String?
+  salaryRange       String?
+  yearsOfExperience String?
+  workMode          String?
+
+  categoryId  String?   @db.ObjectId
+  category    Category? @relation(fields: [categoryId], references: [id])
+  companyId   String?   @db.ObjectId
+  company     Company?  @relation(fields: [companyId], references: [id])
+  attachments Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([categoryId])
+  @@index([companyId])
+  @@fulltext([title])
+}
+
+model Company {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String
+  name           String
+  description    String?
+  logo           String?
+  coverImage     String?
+  mail           String?
+  website        String?
+  likedIn        String?
+  address_line_1 String?
+  address_line_2 String?
+  city           String?
+  state          String?
+  zipcode        String?
+  jobs           Job[]
+  followers      String[]
+  overview       String?
+  whyJoinUs      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Category {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  jobs      Job[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model UserProfile {
+  userId         String       @id @map("_id")
+  fullName       String?
+  email          String?
+  contact        String?
+  appliedJobs    AppliedJob[]
+  resumes        Resumes[]
+  activeResumeId String?
+}
+
+type AppliedJob {
+  jobId     String
+  appliedAt DateTime @default(now())
+}
+
+model Resumes {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  url           String
+  userProfileId String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [userId], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+
+  @@index([userProfileId], name: "idx_userProfileId")
+}
+
+// Enum for role field
+enum Role {
+  user
+  admin
+}
