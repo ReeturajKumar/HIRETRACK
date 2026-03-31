@@ -2,6 +2,8 @@ import { syncUserToDB } from "@/lib/syncUserToDB";
 import { Navbar } from "./_components/Navbar";
 import { Sidebar } from "./_components/Sidebar";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
    await syncUserToDB();
   return (

@@ -5,6 +5,7 @@ import { SearchContainer } from "@/components/SearchContainer";
 import db from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { CategoriesList } from "./_components/container-list";
 import { PageContent } from "./_components/PageContent";
 
@@ -44,10 +45,14 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
 
   return <>
     <div className="px-6 pt-6 block md:hidden md:mb-0">
-      <SearchContainer/>
+      <Suspense fallback={null}>
+        <SearchContainer/>
+      </Suspense>
     </div>
     <div className="p-6">
-      <CategoriesList categories={categories}/>
+      <Suspense fallback={null}>
+        <CategoriesList categories={categories}/>
+      </Suspense>
 
       <PageContent jobs={jobs} userId={clerkId}/>
     </div>
