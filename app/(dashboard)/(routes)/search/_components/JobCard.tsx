@@ -1,6 +1,6 @@
 "use client";
 
-import { Company, Job } from "@/lib/generated/prisma";
+import { Company, Job } from "@/lib/types/models";
 import { Card, CardDescription } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Box from "@/components/box";

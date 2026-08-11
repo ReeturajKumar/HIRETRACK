@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import ImageUpload from "@/components/image-upload";
-import { Job } from "@/lib/generated/prisma";
+import { Job } from "@/lib/types/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { ImageIcon, Pencil } from "lucide-react";
@@ -75,7 +75,7 @@ const ImageForm = ({ initialData, jobId }: ImageFormProps) => {
         </Button>
       </div>
 
-      {!isEditing && (!initialData.imageUrl ? <div className="flex items-center justify-center h-40 ">
+      {!isEditing && ((!initialData.imageUrl || typeof initialData.imageUrl !== 'string' || initialData.imageUrl.trim() === '') ? <div className="flex items-center justify-center h-40 ">
         <ImageIcon className="w-10 h-10" />
       </div> :<div className="relative w-full h-60 aspect-video mt-2">
         <Image width={200} height={200} src={initialData.imageUrl} 
@@ -97,7 +97,7 @@ const ImageForm = ({ initialData, jobId }: ImageFormProps) => {
                     <ImageUpload 
                     value={field.value} 
                     disabled={isSubmitting}
-                    onChange={(url) => field.onChange(url)}
+                    onChange={(data) => field.onChange(data.url)}
                     onRemove={() => field.onChange("")} 
                     />
                   </FormControl>

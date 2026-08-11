@@ -1,39 +1,33 @@
 import { currentUser } from "@clerk/nextjs/server";
-import db from "./db";
+import getDb from "./db";
 
 export async function syncUserToDB() {
   try {
     const user = await currentUser();
     if (!user) return;
 
-    const existingUserByClerkId = await db.user.findUnique({
-      where: {
-        clerkId: user.id,
-      },
+    const db = await getDb();
+    const users = db.collection("User");
+
+    const existing = await users.findOne({ clerkId: user.id });
+    if (existing) return;
+
+    const existingByEmail = await users.findOne({
+      email: user.emailAddresses[0].emailAddress,
     });
-
-    if (!existingUserByClerkId) {
-      const existingUserByEmail = await db.user.findUnique({
-        where: {
-          email: user.emailAddresses[0].emailAddress,
-        },
-      });
-
-      if (existingUserByEmail) {
-        console.log("User with this email already exists.");
-        return;
-      }
-      await db.user.create({
-        data: {
-          clerkId: user.id,
-          email: user.emailAddresses[0].emailAddress,
-          name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
-          role: "user", // Default role is 'user'
-        },
-      });
+    if (existingByEmail) {
+      console.log("User with this email already exists.");
+      return;
     }
+
+    await users.insertOne({
+      clerkId: user.id,
+      email: user.emailAddresses[0].emailAddress,
+      name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+      role: "user",
+      createdAt: new Date(),
+    });
   } catch (error) {
-    // Avoid breaking full rendering when user sync cannot complete.
     console.error("syncUserToDB skipped:", error);
   }
 }

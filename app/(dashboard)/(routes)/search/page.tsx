@@ -1,13 +1,16 @@
+
 // app/(dashboard)/(routes)/search/page.tsx
 
 import { getJobs } from "@/actions/get-jobs";
 import { SearchContainer } from "@/components/SearchContainer";
-import db from "@/lib/db";
+import getDb from "@/lib/db";
+import { serializeArray } from "@/lib/serialize";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { CategoriesList } from "./_components/container-list";
 import { PageContent } from "./_components/PageContent";
+import { FilterContainer } from "../../_components/FilterContainer";
 
 interface SearchPageProps {
   // --- IMPORTANT CHANGE HERE ---
@@ -24,11 +27,9 @@ interface SearchPageProps {
 }
 
 const SearchPage = async ({ searchParams }: SearchPageProps) => {
-  const categories = await db.category.findMany({
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const db = await getDb();
+  const categoriesDocs = await db.collection("Category").find({}).sort({ name: 1 }).toArray();
+  const categories = serializeArray(categoriesDocs.map((c) => ({ ...c, id: c._id.toString() })));
 
   const { userId: clerkId } = await auth();
 
@@ -49,12 +50,19 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
         <SearchContainer/>
       </Suspense>
     </div>
-    <div className="p-6">
-      <Suspense fallback={null}>
-        <CategoriesList categories={categories}/>
-      </Suspense>
 
-      <PageContent jobs={jobs} userId={clerkId}/>
+    <div className="flex flex-col md:flex-row h-full">
+      <div className="hidden md:flex flex-col w-80 border-r p-6 shrink-0">
+        <FilterContainer />
+      </div>
+      
+      <div className="flex-1 p-6">
+        <Suspense fallback={null}>
+          <CategoriesList categories={categories}/>
+        </Suspense>
+
+        <PageContent jobs={jobs} userId={clerkId}/>
+      </div>
     </div>
   </>
 };

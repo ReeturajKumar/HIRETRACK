@@ -1,51 +1,33 @@
-import db from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import getDb from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 interface Params {
-  params: Promise<{ // <-- THIS IS THE CRUCIAL CHANGE
-    companyId: string;
-  }>;
+  params: Promise<{ companyId: string }>;
 }
 
 export const PATCH = async (req: Request, { params }: Params) => {
   try {
-    const { userId: clerkId } = await auth();  // Get Clerk userId (clerkId)
-     const awaitedParams = await params; // ADD THIS LINE
-    const { companyId } = awaitedParams; // Destructure from the awaited version
-
+    const { userId: clerkId } = await auth();
+    const { companyId } = await params;
     const updatedValues = await req.json();
 
-    if (!clerkId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    if (!clerkId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!companyId) return new NextResponse("ID is required", { status: 400 });
 
-    if (!companyId) {
-      return new NextResponse("ID is required", { status: 400 });
-    }
+    const db = await getDb();
+    const mongoUser = await db.collection("User").findOne({ clerkId });
+    if (!mongoUser) return new NextResponse("User not found", { status: 404 });
 
-    // Retrieve MongoDB userId using clerkId
-    const user = await db.user.findUnique({
-      where: {
-        clerkId,  // Use clerkId to fetch MongoDB _id
-      },
-    });
+    const result = await db.collection("Company").findOneAndUpdate(
+      { _id: new ObjectId(companyId), userId: mongoUser._id.toString() },
+      { $set: { ...updatedValues, updatedAt: new Date() } },
+      { returnDocument: "after" }
+    );
 
-    if (!user) {
-      return new NextResponse("User not found", { status: 404 });
-    }
-
-    const company = await db.company.update({
-      where: {
-        id: companyId,
-        userId: user.id,  // Use MongoDB _id here
-      },
-      data: {
-        ...updatedValues,
-      },
-    });
-
-    return NextResponse.json(company);
+    if (!result) return new NextResponse("Company not found", { status: 404 });
+    return NextResponse.json({ ...result, id: result._id.toString() });
   } catch (error) {
     console.log(`[COMPANY_PATCH] : ${error}`);
     return new NextResponse("Internal Server Error", { status: 500 });

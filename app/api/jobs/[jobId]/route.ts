@@ -1,107 +1,58 @@
-import db from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-
+import getDb from "@/lib/db";
+import { ObjectId } from "mongodb";
 
 interface Params {
-  params: Promise<{ // <-- THIS IS ALREADY CORRECT for PATCH
-    jobId: string;
-  }>;
+  params: Promise<{ jobId: string }>;
 }
 
 export const PATCH = async (req: Request, { params }: Params) => {
   try {
     const { userId: clerkId } = await auth();
-    const awaitedParams = await params;
-    const { jobId } = awaitedParams;
-
+    const { jobId } = await params;
     const updatedValues = await req.json();
 
-    if (!clerkId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    if (!clerkId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!jobId) return new NextResponse("ID is required", { status: 400 });
 
-    if (!jobId) {
-      return new NextResponse("ID is required", { status: 400 });
-    }
+    const db = await getDb();
+    const mongoUser = await db.collection("User").findOne({ clerkId });
+    if (!mongoUser) return new NextResponse("User not found", { status: 404 });
 
-    // Retrieve MongoDB userId using clerkId
-    const user = await db.user.findUnique({
-      where: {
-        clerkId,  // Use clerkId to fetch MongoDB _id
-      },
-    });
+    const result = await db.collection("Job").findOneAndUpdate(
+      { _id: new ObjectId(jobId), userId: mongoUser._id.toString() },
+      { $set: { ...updatedValues, updatedAt: new Date() } },
+      { returnDocument: "after" }
+    );
 
-    if (!user) {
-      return new NextResponse("User not found", { status: 404 });
-    }
-
-    const job = await db.job.update({
-      where: {
-        id: jobId,
-        userId: user.id,  // Use MongoDB _id here
-      },
-      data: {
-        ...updatedValues,
-      },
-    });
-
-    return NextResponse.json(job);
+    if (!result) return new NextResponse("Job not found", { status: 404 });
+    return NextResponse.json({ ...result, id: result._id.toString() });
   } catch (error) {
     console.log(`[JOB_PATCH] : ${error}`);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 };
 
-
-// --- IMPORTANT CHANGE HERE FOR DELETE METHOD ---
-// Use the 'Params' interface you already defined, and await params inside the function.
-export const DELETE = async (req: Request, { params }: Params) => { // Changed '{ params: { jobId: string } }' to 'Params'
+export const DELETE = async (req: Request, { params }: Params) => {
   try {
     const { userId: clerkId } = await auth();
-    
-    // Await params here, just like in PATCH
-    const awaitedParams = await params; 
-    const { jobId } = awaitedParams; // Destructure from the awaited object
+    const { jobId } = await params;
 
-    if (!clerkId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    if (!clerkId) return new NextResponse("Unauthorized", { status: 401 });
+    if (!jobId) return new NextResponse("ID is required", { status: 400 });
 
-    if (!jobId) {
-      return new NextResponse("ID is required", { status: 400 });
-    }
+    const db = await getDb();
+    const mongoUser = await db.collection("User").findOne({ clerkId });
+    if (!mongoUser) return new NextResponse("User not found", { status: 404 });
 
-    const user = await db.user.findUnique({
-      where: {
-        clerkId,
-      },
-    });
-
-    if (!user) {
-      return new NextResponse("User not found", { status: 404 });
-    }
-
-    // Check if the job belongs to the user
-    const job = await db.job.findUnique({
-      where: {
-        id: jobId,
-      },
-    });
-
-    if (!job || job.userId !== user.id) {
+    const job = await db.collection("Job").findOne({ _id: new ObjectId(jobId) });
+    if (!job || job.userId !== mongoUser._id.toString()) {
       return new NextResponse("Job not found or unauthorized", { status: 404 });
     }
 
-    // Now delete
-    const deletedJob = await db.job.delete({
-      where: {
-        id: jobId,
-      },
-    });
-
-    return NextResponse.json(deletedJob);
-
+    await db.collection("Job").deleteOne({ _id: new ObjectId(jobId) });
+    return NextResponse.json({ ...job, id: job._id.toString() });
   } catch (error) {
     console.log(`[JOB_DELETE] : ${error}`);
     return new NextResponse("Internal Server Error", { status: 500 });

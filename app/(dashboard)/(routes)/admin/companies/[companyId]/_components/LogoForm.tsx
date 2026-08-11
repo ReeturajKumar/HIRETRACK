@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import ImageUpload from "@/components/image-upload";
-import { Company } from "@/lib/generated/prisma";
+import { Company } from "@/lib/types/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { ImageIcon, Pencil } from "lucide-react";
@@ -75,7 +75,7 @@ const LogoForm = ({ initialData, companyId }: LogoFormProps) => {
         </Button>
       </div>
 
-      {!isEditing && (!initialData.logo ? <div className="flex items-center justify-center h-40 ">
+      {!isEditing && ((!initialData.logo || typeof initialData.logo !== 'string' || initialData.logo.trim() === '') ? <div className="flex items-center justify-center h-40 ">
         <ImageIcon className="w-10 h-10" />
       </div> :<div className="relative w-full h-60 aspect-video mt-2">
         <Image width={200} height={200} src={initialData.logo} 
@@ -97,7 +97,7 @@ const LogoForm = ({ initialData, companyId }: LogoFormProps) => {
                     <ImageUpload 
                     value={field.value} 
                     disabled={isSubmitting}
-                    onChange={(url) => field.onChange(url)}
+                    onChange={(data) => field.onChange(data.url)}
                     onRemove={() => field.onChange("")} 
                     />
                   </FormControl>

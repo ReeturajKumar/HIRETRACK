@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Resumes, UserProfile } from "@/lib/generated/prisma";
+import { Resumes, UserProfile } from "@/lib/types/models";
 import axios from "axios";
 import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";

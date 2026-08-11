@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 "use client";
 
 import { Banner } from "@/components/banner";
@@ -7,8 +8,7 @@ import { CustomeBreadCrummb } from "@/components/CustomeBreadCrummb";
 import JobDescriptionPreview from "@/components/preview";
 import { ApplyModal } from "@/components/ui/apply-modal";
 import { Button } from "@/components/ui/button";
-// Assuming Prisma models are correctly imported:
-import { Company, Job, Resumes, UserProfile, Prisma } from "@/lib/generated/prisma"; // Added Prisma import for JsonValue
+import { Company, Job, Resumes, UserProfile } from "@/lib/types/models";
 
 import axios from "axios";
 import { FileIcon } from "lucide-react";
@@ -26,13 +26,10 @@ type JobAttachment = {
 };
 
 interface JobDetailsPageContentProps {
-  // --- IMPORTANT CHANGE HERE ---
-  // Correctly define 'attachments' as an array of 'JobAttachment' objects.
-  // We also include Prisma.JsonValue | null because Prisma often types JSON fields broadly.
-  job: Job & { company: Company | null; attachments: JobAttachment[] | Prisma.JsonValue | null };
+  
+  job: Job & { company: Company };
   jobId: string;
-  userProfile: (UserProfile & {resumes: Resumes[];
-  }) | null;
+  userProfile: UserProfile | null;
 }
 
 export const JobDetailsPageContent = ({
@@ -48,7 +45,7 @@ export const JobDetailsPageContent = ({
   const onApplied = async () => {
     setisLoading(true);
     try {
-      const responce = await axios.patch(`/api/users/${userProfile?.userId}/appliedJobs`,jobId);
+      await axios.patch(`/api/users/${userProfile?.userId}/appliedJobs`, { jobId });
 
       // sending email
       await axios.post(`/api/thankyou`,{

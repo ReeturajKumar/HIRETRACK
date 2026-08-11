@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import getGenerativeAIResponse from "@/scripts/aistudio";
-import { Job } from "@/lib/generated/prisma";
+import { Job } from "@/lib/types/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { Lightbulb, Loader2, Pencil, X } from "lucide-react";

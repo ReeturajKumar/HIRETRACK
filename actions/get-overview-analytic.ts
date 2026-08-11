@@ -1,65 +1,31 @@
-import db from "@/lib/db";
+import getDb from "@/lib/db";
 
 export const getTotalJobsOnPortal = async () => {
-  const jobs = await db.job.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-  return jobs.length;
+  const db = await getDb();
+  return db.collection("Job").countDocuments();
 };
 
 export const getTotalJobsOnPortalByUserId = async (clerkId: string | null) => {
   if (!clerkId) return 0;
 
-  const user = await db.user.findUnique({
-    where: { clerkId },
-    select: { id: true },
-  });
+  const db = await getDb();
+  const mongoUser = await db.collection("User").findOne({ clerkId });
+  if (!mongoUser) return 0;
 
-  if (!user) return 0;
-
-  const jobs = await db.job.findMany({
-    where: {
-      userId: user.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return jobs.length;
+  return db.collection("Job").countDocuments({ userId: mongoUser._id.toString() });
 };
 
 export const getTotalCompaniesOnPortal = async () => {
-  const companies = await db.company.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-  return companies.length;
+  const db = await getDb();
+  return db.collection("Company").countDocuments();
 };
 
-export const getTotalCompaniesOnPortalByUserId = async (
-  clerkId: string | null
-) => {
+export const getTotalCompaniesOnPortalByUserId = async (clerkId: string | null) => {
   if (!clerkId) return 0;
 
-  const user = await db.user.findUnique({
-    where: { clerkId },
-    select: { id: true },
-  });
+  const db = await getDb();
+  const mongoUser = await db.collection("User").findOne({ clerkId });
+  if (!mongoUser) return 0;
 
-  if (!user) return 0;
-
-  const companies = await db.company.findMany({
-    where: {
-      userId: user.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return companies.length;
+  return db.collection("Company").countDocuments({ userId: mongoUser._id.toString() });
 };

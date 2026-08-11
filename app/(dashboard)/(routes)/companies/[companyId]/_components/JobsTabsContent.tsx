@@ -1,6 +1,6 @@
 "use client"
 
-import { Job } from "@/lib/generated/prisma";
+import { Job } from "@/lib/types/models";
 import { PageContent } from "../../../search/_components/PageContent";
 
 interface JobsTabsContentProps {

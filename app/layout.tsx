@@ -14,6 +14,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "HIRETRACK - A Platform for Hiring",
   description: "JobSeeker & Recruiter Platform",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

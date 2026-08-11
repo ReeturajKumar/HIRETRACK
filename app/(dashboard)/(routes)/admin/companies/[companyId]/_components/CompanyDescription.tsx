@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/form";
 
 import { Textarea } from "@/components/ui/textarea";
-import { Company } from "@/lib/generated/prisma";
+import { Company } from "@/lib/types/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { Pencil } from "lucide-react";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Company, Job } from "@/lib/generated/prisma";
+import { Company, Job } from "@/lib/types/models";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CompanyPreview from './../../../admin/companies/[companyId]/_components/CompanyPreview';
 import CompanyPreviewWhyJoinUs from "../../../admin/companies/[companyId]/_components/CompanyPreviewJoinUs";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Resumes, UserProfile } from "@/lib/generated/prisma";
+import { Resumes, UserProfile } from "@/lib/types/models";
 import { useEffect, useState } from "react";
 import { Modal } from "./modal";
 import Box from "../box";
@@ -12,7 +12,7 @@ interface ApplyModalProps {
   onClose: () => void;
   onConfirm: () => void;
   loading: boolean;
-  userProfile?: (UserProfile & { resumes: Resumes[] }) | null;
+  userProfile?: UserProfile | null;
 }
 
 export const ApplyModal = ({

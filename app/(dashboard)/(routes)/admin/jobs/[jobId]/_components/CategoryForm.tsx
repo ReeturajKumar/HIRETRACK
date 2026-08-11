@@ -8,7 +8,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Job } from "@/lib/generated/prisma";
+import { Job } from "@/lib/types/models";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";

@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
+
 // app/(dashboard)/(routes)/admin/jobs/[jobId]/_components/AttachmentsForm.tsx
 "use client";
 
@@ -10,7 +11,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Job } from "@/lib/generated/prisma"; // Assuming Job is correctly imported
+import { Job } from "@/lib/types/models"; // Assuming Job is correctly imported
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import {Pencil } from "lucide-react";
@@ -27,10 +28,10 @@ interface AttachmentsFormProps {
 }
 
 // Define a type for your attachment object for clarity and reuse
-type AttachmentItem = { url: string; name: string };
+type AttachmentItem = { url: string; name: string; public_id?: string };
 
 const formSchema = z.object({
-  attachments: z.array(z.object({ url: z.string(), name: z.string() })),
+  attachments: z.array(z.object({ url: z.string(), name: z.string(), public_id: z.string().optional() })),
 });
 
 const AttachmentsForm = ({ initialData, jobId }: AttachmentsFormProps) => {
@@ -41,9 +42,9 @@ const AttachmentsForm = ({ initialData, jobId }: AttachmentsFormProps) => {
   // And then map it, ensuring null/undefined map to empty array
   const initialAttachments = Array.isArray(initialData.attachments)
     ? (initialData.attachments as AttachmentItem[]) // Assert it as an array of your expected type
-        .map((attachment: any) => { // Keep 'any' here for robustness against unexpected data shapes from DB
+        .map((attachment: unknown) => { // Keep 'any' here for robustness against unexpected data shapes from DB
           if (
-            typeof attachment === 'object' &&
+            typeof attachment === 'object' && attachment !== null &&
             attachment !== null &&
             'url' in attachment &&
             'name' in attachment &&

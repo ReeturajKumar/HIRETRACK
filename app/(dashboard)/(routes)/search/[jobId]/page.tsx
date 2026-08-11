@@ -1,4 +1,7 @@
-import db from "@/lib/db";
+
+import getDb from "@/lib/db";
+import { ObjectId } from "mongodb";
+import { serialize } from "@/lib/serialize";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -7,65 +10,53 @@ import { getJobs } from "@/actions/get-jobs";
 import { Separator } from "@/components/ui/separator";
 import Box from "@/components/box";
 import { PageContent } from "../_components/PageContent";
+import { UserProfile, Job, Company } from "@/lib/types/models";
 
-// --- IMPORTANT CHANGE HERE ---
-// Define the props interface correctly, ensuring 'params' is typed as a Promise
 interface JobDetailsPageProps {
-  params: Promise<{
-    jobId: string;
-  }>;
+  params: Promise<{ jobId: string }>;
 }
 
-// Update the function signature to use the new interface
 const JobDetailsPage = async ({ params }: JobDetailsPageProps) => {
-  // Await the params to get the resolved object
-  const awaitedParams = await params;
-  const { jobId } = awaitedParams; // Destructure jobId from the awaited object
-
+  const { jobId } = await params;
   const { userId: clerkId } = await auth();
 
-  if (!clerkId) {
-    return redirect("/");
-  }
+  if (!clerkId) return redirect("/");
 
-  const job = await db.job.findUnique({
-    where: {
-      id: jobId, // Use the resolved jobId
-    },
-    include: {
-      company: true,
-    },
+  const db = await getDb();
+
+  const jobDoc = await db.collection("Job").findOne({ _id: new ObjectId(jobId) });
+  if (!jobDoc) return redirect("/search");
+
+  const companyDoc = jobDoc.companyId
+    ? await db.collection("Company").findOne({ _id: new ObjectId(jobDoc.companyId) })
+    : null;
+
+  const job = serialize<Job & { company: Company }>({
+    ...jobDoc,
+    id: jobDoc._id.toString(),
+    company: companyDoc ? serialize({ ...companyDoc, id: companyDoc._id.toString() }) : null,
   });
 
-  if (!job) {
-    return redirect("/search");
-  }
+  const profileDoc = await db.collection("UserProfile").findOne({ userId: clerkId });
+  const resumesDocs = profileDoc
+    ? await db.collection("Resumes").find({ userProfileId: clerkId }).sort({ createdAt: -1 }).toArray()
+    : [];
 
-  const profile = await db.userProfile.findUnique({
-    where: {
-      userId: clerkId as string,
-    },
-    include: {
-      resumes: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
-  });
+  const profile = profileDoc
+    ? serialize<UserProfile>({
+        ...profileDoc,
+        resumes: resumesDocs.map((r) => ({ ...r, id: r._id.toString() })),
+        appliedJobs: profileDoc.appliedJobs ?? [],
+      })
+    : null;
 
   const jobs = await getJobs({});
+  const filterJobs = jobs.filter((j) => j?.id !== job?.id && j.categoryId === job?.categoryId);
 
-  const filterJobs = jobs.filter(
-    (j) => j?.id !== job?.id && j.categoryId === job?.categoryId
-  );
   return (
     <div className="flex-col p-4 md:p-8">
-      <JobDetailsPageContent
-        job={job}
-        jobId={jobId} // Use the resolved jobId
-        userProfile={profile}
-      />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <JobDetailsPageContent job={job} jobId={jobId} userProfile={profile} />
 
       {filterJobs && filterJobs.length > 0 && (
         <>
@@ -73,8 +64,8 @@ const JobDetailsPage = async ({ params }: JobDetailsPageProps) => {
           <Box className="flex-col my-4 items-start justify-start px-4 gap-2">
             <h2 className="text-lg font-semibold">Similar Jobs</h2>
           </Box>
-
-          <PageContent jobs={filterJobs} userId={clerkId}/>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <PageContent jobs={filterJobs as any} userId={clerkId} />
         </>
       )}
     </div>

@@ -8,7 +8,6 @@ const HomeSearchConatiner = () => {
   const [title, settitle] = useState("")
   const router = useRouter()
 
-
   const handleClick = () => {
     const href = qs.stringifyUrl({
       url: "/search",
@@ -18,24 +17,24 @@ const HomeSearchConatiner = () => {
     })
     router.push(href)
   }
-  return (
-<div className="w-full items-center justify-center hidden md:flex px-4">
-  <div className="w-[60%] h-16 px-4 py-2 flex items-center rounded-full shadow-lg gap-3 bg-neutral-50 dark:bg-[#141416]">
-    <input 
-      placeholder="Search Jobs"
-      type="text"
-      onChange={(e) => settitle(e.target.value)}
-      className="flex-1 text-lg font-sans bg-transparent outline-none border-none focus:ring-0 dark:text-white placeholder:text-muted-foreground"
-    />
-    <button 
-      onClick={handleClick} disabled={!title}
-      className="text-white bg-primary dark:bg-primary dark:text-white px-4 py-2 rounded-full text-sm font-medium hover:opacity-90 transition"
-    >
-      Search
-    </button>
-  </div>
-</div>
 
+  return (
+    <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-start">
+      <input 
+        placeholder="Search jobs or companies...."
+        type="text"
+        value={title}
+        onChange={(e) => settitle(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+        className="w-full sm:w-[380px] md:w-[450px] lg:w-[500px] bg-white dark:bg-neutral-900 border-0 rounded-md px-5 py-3.5 text-[14px] font-medium text-neutral-800 dark:text-neutral-100 placeholder:text-neutral-400 outline-none transition-all shadow-inner"
+      />
+      <button 
+        onClick={handleClick}
+        className="w-full sm:w-auto bg-[#D9FC33] border-0 text-neutral-950 px-7 py-3.5 rounded-md font-bold text-[14px] flex items-center justify-center gap-1.5 transition-all hover:bg-[#c6e82a] active:scale-[0.98] hover:translate-y-[-1px] shadow-sm hover:shadow-md cursor-pointer"
+      >
+        Explore &rarr;
+      </button>
+    </div>
   )
 }
 

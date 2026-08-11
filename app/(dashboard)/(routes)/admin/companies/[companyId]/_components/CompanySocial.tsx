@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Company } from "@/lib/generated/prisma";
+import { Company } from "@/lib/types/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { Globe, Linkedin, Mail, MapPin, Pencil } from "lucide-react";

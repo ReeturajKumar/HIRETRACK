@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import db from '@/lib/db';
+import getDb from '@/lib/db';
+
 import { auth } from '@clerk/nextjs/server';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -13,29 +14,21 @@ const CompaniesOverviewPage = async () => {
 
   if (!clerkId) return redirect("/");
 
-  // Map Clerk ID to your MongoDB User ID
-  const user = await db.user.findUnique({
-    where: { clerkId },
-  });
+  const db = await getDb();
+  const mongoUser = await db.collection("User").findOne({ clerkId });
+  if (!mongoUser) return redirect("/");
 
-  if (!user) return redirect("/");
+  const companiesDocs = await db
+    .collection("Company")
+    .find({ userId: mongoUser._id.toString() })
+    .sort({ createdAt: -1 })
+    .toArray();
 
-  const companies = await db.company.findMany({
-    where: {
-      userId: user.id, // ✅ use internal user ID
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  const formattedCompanies: CompanyColumns[] = companies.map((company) => ({
-    id: company.id,
+  const formattedCompanies: CompanyColumns[] = companiesDocs.map((company) => ({
+    id: company._id.toString(),
     name: company.name ?? "",
     logo: company.logo ?? "",
-    createdAt: company.createdAt
-      ? format(company.createdAt, "MMMM do, yyyy")
-      : "",
+    createdAt: company.createdAt ? format(company.createdAt, "MMMM do, yyyy") : "",
   }));
 
   return (
@@ -63,4 +56,3 @@ const CompaniesOverviewPage = async () => {
 };
 
 export default CompaniesOverviewPage;
-

@@ -1,91 +1,69 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import db from '@/lib/db';
+
+
+import getDb from '@/lib/db';
+import { ObjectId } from 'mongodb';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { ApplicantsColumns, columns } from './_components/columns';
+import { Job } from '@/lib/types/models';
 import { format } from 'date-fns';
 import Box from '@/components/box';
 import { CustomeBreadCrummb } from '@/components/CustomeBreadCrummb';
 import { DataTable } from '@/components/ui/data-table';
 
-// Make sure to define the type correctly for params as a Promise
 type JobApplicantsPageProps = {
-  params: Promise<{
-    jobId: string;
-  }>;
+  params: Promise<{ jobId: string }>;
 };
 
-// Update the component's signature to use the correct type
 const JobApplicantsPage = async ({ params }: JobApplicantsPageProps) => {
-  // --- CRUCIAL CHANGE: Await params to get the actual object ---
-  const resolvedParams = await params;
-  const jobId = resolvedParams.jobId; // Extract jobId from the resolved object
-
+  const { jobId } = await params;
   const { userId: clerkId } = await auth();
 
   if (!clerkId) redirect("/sign-in");
 
-  // 🛠️ FIX: Map Clerk ID to internal user ID
-  const userDoc = await db.user.findUnique({
-    where: { clerkId },
-    select: { id: true },
+  const db = await getDb();
+  const mongoUser = await db.collection("User").findOne({ clerkId });
+  if (!mongoUser) redirect("/");
+
+  const jobDoc = await db.collection("Job").findOne({
+    _id: new ObjectId(jobId),
+    userId: mongoUser._id.toString(),
   });
 
-  if (!userDoc) {
-    redirect("/");
-  }
+  if (!jobDoc) redirect("/admin/jobs");
+  const job = { ...jobDoc, id: jobDoc._id.toString() } as unknown as Job;
 
-  const job = await db.job.findUnique({
-    where: {
-      id: jobId, // Use the extracted jobId here
-      userId: userDoc.id, // Use internal ID here
-    },
-  });
-
-  if (!job) {
-    redirect("/admin/jobs");
-  }
-
-  const profiles = await db.userProfile.findMany({
-    include: {
-      resumes: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
-  });
-
-  const jobs = await db.job.findMany({
-    where: {
-      userId: userDoc.id, // Use internal ID here too
-    },
-    include: {
-      company: true,
-      category: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  const filteredProfiles = profiles.filter(profile =>
-    profile.appliedJobs.some(
-      (appliedJob) => appliedJob.jobId === jobId // Use the extracted jobId here
-    )
+  // Get all profiles that have applied to this job
+  const allProfiles = await db.collection("UserProfile").find({}).toArray();
+  const filteredProfiles = allProfiles.filter((profile) =>
+    (profile.appliedJobs ?? []).some((aj: { jobId: string; appliedAt: Date }) => aj.jobId === jobId)
   );
 
-  const formattedProfiles: ApplicantsColumns[] = filteredProfiles.map(profile => ({
-    id: profile.userId,
-    fullname: profile.fullName || "",
-    email: profile.email || "",
-    contact: profile.contact || "",
-    appliedAt: profile.appliedJobs.find(job => job.jobId === jobId)?.appliedAt // Use the extracted jobId here
-      ? format(new Date(profile.appliedJobs.find(job => job.jobId === jobId)?.appliedAt ?? ""), "dd MMMM yyyy") // And here
-      : "",
-    resume: profile.resumes[0]?.url || "",
-    resumeName: profile.resumes[0]?.name || "",
-  }));
+  const formattedProfiles: ApplicantsColumns[] = await Promise.all(
+    filteredProfiles.map(async (profile) => {
+      const resumes = await db
+        .collection("Resumes")
+        .find({ userProfileId: profile.userId })
+        .sort({ createdAt: -1 })
+        .toArray();
+
+      const appliedEntry = (profile.appliedJobs ?? []).find(
+        (aj: { jobId: string; appliedAt: Date }) => aj.jobId === jobId
+      );
+
+      return {
+        id: profile.userId,
+        fullname: profile.fullName || "",
+        email: profile.email || "",
+        contact: profile.contact || "",
+        appliedAt: appliedEntry?.appliedAt
+          ? format(new Date(appliedEntry.appliedAt), "dd MMMM yyyy")
+          : "",
+        resume: resumes[0]?.url || "",
+        resumeName: resumes[0]?.name || "",
+      };
+    })
+  );
 
   return (
     <div className='flex-col p-4 md:p-8 items-center justify-center flex'>

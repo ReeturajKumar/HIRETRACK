@@ -1,6 +1,6 @@
 "use client"
 
-import { Job } from "@/lib/generated/prisma"
+import { Job } from "@/lib/types/models"
 import Image from "next/image"
 import img1 from "@/public/not-found.png"
 import { AnimatePresence, motion } from "framer-motion"

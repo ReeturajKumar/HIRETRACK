@@ -1,7 +1,7 @@
 "use client"
 
 import Box from "@/components/box"
-import { Category } from "@/lib/generated/prisma"
+import { Category } from "@/lib/types/models"
 import { iconMapping, IconName } from "@/lib/utils"
 import { ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -38,8 +38,8 @@ export const CategoryListItemCard = ({ data }: { data: Category }) => {
 
 const HomeScreenCategoriesContainer = ({ categories }: HomeScreenCategoriesContainerProps) => {
   return (
-    <Box className="flex-col mt-12">
-    <div className="w-full flex flex-wrap items-center justify-center gap-4">
+    <Box className="flex-col">
+    <div className="w-full flex flex-wrap items-center justify-start gap-4">
         {categories.map((category) => (
           <CategoryListItemCard key={category.id} data={category} />
         ))}

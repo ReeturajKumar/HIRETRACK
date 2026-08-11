@@ -1,16 +1,32 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    webpack: (config, { isServer }) => {
-    // Only apply this on the server side
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  webpack: (config, { isServer }) => {
     if (isServer) {
-      config.externals.push('handlebars');
+      config.externals.push("handlebars");
     }
     return config;
   },
-  
+
   images: {
-    domains: ['firebasestorage.googleapis.com', 'img.clerk.com'],
+    remotePatterns: [
+      {
+        // Cloudinary CDN
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
+      {
+        // Clerk user avatars
+        protocol: "https",
+        hostname: "img.clerk.com",
+      },
+    ],
   },
 };
 

@@ -24,7 +24,7 @@ HireTrack is a modern and comprehensive job board and career management platform
 
   - **User Authentication:** Secure user registration and login powered by Clerk.
   - **User Profiles:** Job seekers can create and manage their personal profiles, including contact information and professional summaries.
-  - **Resume Uploads:** Seamlessly upload and manage multiple resumes and attachments (PDF, DOCX, etc.) with Firebase Storage integration.
+  - **Resume Uploads:** Seamlessly upload and manage multiple resumes and attachments (PDF, DOCX, etc.) with Cloudinary integration.
   - **Job Discovery:** Browse, search, and filter job listings by various criteria to find ideal opportunities.
   - **Application Management:** Apply to jobs directly through the platform and track the status of submitted applications.
   - **Admin Dashboard:**
@@ -33,15 +33,15 @@ HireTrack is a modern and comprehensive job board and career management platform
       - Oversee applicant submissions and their statuses.
   - **Automated Email Notifications:** Send automated emails for application updates, rejections, acceptances, and more, using Nodemailer and Handlebars for dynamic content.
   - **Responsive UI:** A modern and intuitive user interface built with ShadCN UI components, ensuring a great experience across devices.
-  - **Robust Data Management:** Efficient and type-safe database interactions powered by Prisma ORM.
+  - **Robust Data Management:** Efficient and type-safe database interactions powered by Native MongoDB Driver.
 
 ## Technologies Used
 
   - **Framework:** [Next.js](https://nextjs.org/) (App Router)
-  - **Database ORM:** [Prisma](https://www.prisma.io/)
+  - **Database ORM:** [Native MongoDB Driver](https://www.Native MongoDB Driver.io/)
   - **Authentication:** [Clerk](https://clerk.com/)
-  - **Database:** PostgreSQL (Assumed, can be changed to MySQL, SQLite, etc.)
-  - **File Storage:** [Google Firebase Storage](https://firebase.google.com/docs/storage)
+  - **Database:** MongoDB (Assumed, can be changed to MySQL, SQLite, etc.)
+  - **File Storage:** [Cloudinary](https://cloudinary.com/documentation)
   - **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
   - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
   - **Form Management:** [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/) for validation
@@ -62,8 +62,8 @@ Before you begin, ensure you have the following installed:
   - [Node.js](https://nodejs.org/) (v18.x or later recommended)
   - [npm](https://www.npmjs.com/) (comes with Node.js) or [Yarn](https://yarnpkg.com/) or [pnpm](https://pnpm.io/)
   - [Git](https://git-scm.com/)
-  - A running instance of your chosen database (e.g., PostgreSQL server).
-  - A [Firebase Project](https://firebase.google.com/) for file storage.
+  - A running instance of your chosen database (e.g., MongoDB server).
+  - A [Cloudinary Account](https://cloudinary.com/) for file storage.
   - A [Clerk](https://clerk.com/) account for authentication.
   - (Optional) SMTP service credentials for email sending (e.g., Mailgun, SendGrid, Gmail SMTP).
   - (Optional) OpenAI API key if you plan to use AI Studio features.
@@ -98,17 +98,14 @@ NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
 
-# Database (PostgreSQL example)
+# Database (MongoDB example)
 # Make sure your database is running and accessible
-DATABASE_URL="postgresql://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR_DB_HOST:YOUR_DB_PORT/YOUR_DB_NAME?schema=public"
+DATABASE_URL="mongodb://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR_DB_HOST:YOUR_DB_PORT/YOUR_DB_NAME?retryWrites=true&w=majority"
 
-# Firebase Storage
-FIREBASE_API_KEY=your_firebase_api_key
-FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-FIREBASE_PROJECT_ID=your_firebase_project_id
-FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
-FIREBASE_APP_ID=your_firebase_app_id
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 
 # Email Service (Nodemailer)
 # Example for a generic SMTP server
@@ -126,24 +123,24 @@ OPENAI_API_KEY=your_openai_api_key
 
 Once your database is set up and `DATABASE_URL` is configured in `.env.local`:
 
-1.  **Generate Prisma client and apply migrations:**
+1.  **Generate Native MongoDB Driver client and apply migrations:**
 
     ```bash
-    npx prisma migrate dev --name init
+    npx Native MongoDB Driver migrate dev --name init
     ```
 
-    This command will create the database schema based on your `prisma/schema.prisma` file.
+    This command will create the database schema based on your `Native MongoDB Driver/schema.Native MongoDB Driver` file.
 
 2.  **(Optional) Push schema changes without migrations (use with caution in production):**
 
     ```bash
-    npx prisma db push
+    npx Native MongoDB Driver db push
     ```
 
-3.  **(Optional) Open Prisma Studio to view your database:**
+3.  **(Optional) Open Native MongoDB Driver Studio to view your database:**
 
     ```bash
-    npx prisma studio
+    npx Native MongoDB Driver studio
     ```
 
 ### Running the Development Server
@@ -172,13 +169,13 @@ Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:30
 │   ├── globals.css
 │   └── layout.tsx        # Root layout for the application
 ├── components/           # Reusable UI components (e.g., AttachmentsUpload, image-upload, ui/*)
-├── config/               # Configuration files (e.g., firebase.config.ts)
-├── lib/                  # Utility functions, helpers, Prisma generated client
-│   ├── generated/        # Prisma's auto-generated client and runtime
-│   │   └── prisma/
+├── config/               # Configuration files (e.g., cloudinary.config.ts)
+├── lib/                  # Utility functions, helpers, DB connection
+│   ├── generated/        # Native MongoDB Driver's auto-generated client and runtime
+│   │   └── Native MongoDB Driver/
 │   ├── mail.ts           # Email sending utilities
 │   └── ...
-├── prisma/               # Prisma schema and migrations
+├── Native MongoDB Driver/               # Native MongoDB Driver schema and migrations
 ├── public/               # Static assets
 ├── types/                # Custom TypeScript types
 ├── .env.local.example    # Example environment variables

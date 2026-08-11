@@ -1,6 +1,6 @@
 "use client"
 
-import { Category } from "@/lib/generated/prisma"
+import { Category } from "@/lib/types/models"
 import CategoryListItem from "./CategoryListItem"
 
 interface CategoriesListProps {

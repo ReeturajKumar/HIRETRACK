@@ -25,7 +25,7 @@ const CategoryListItem = ({label, value} : CategoryListItemProps) => {
 
   const onClick = () => {
     const url = qs.stringifyUrl({
-      url: pathname,
+      url: pathname === "/" ? "/search" : pathname,
       query: {
         categoryId: isSeected ? null : value,
         title: currentTitle
@@ -38,7 +38,7 @@ const CategoryListItem = ({label, value} : CategoryListItemProps) => {
   }
 
 
-  return <Button type="button" variant={"outline"} onClick={onClick} className={cn(" whitespace-nowrap text-sm tracking-wider text-muted-foreground border px-2 py-[4px] rounded-md hover:bg-primary hover:dark:bg-primary hover:text-white transition cursor-pointer hover:shadow-sm", isSeected && "bg-primary dark:bg-primary dark:text-white text-white")}>
+  return <Button type="button" variant={"outline"} onClick={onClick} className={cn(" whitespace-nowrap text-sm tracking-wider text-muted-foreground border px-2 py-[4px] rounded-none hover:bg-primary hover:dark:bg-primary hover:text-white transition cursor-pointer hover:shadow-sm", isSeected && "bg-primary dark:bg-primary dark:text-white text-white")}>
     {label}
   </Button>
 }

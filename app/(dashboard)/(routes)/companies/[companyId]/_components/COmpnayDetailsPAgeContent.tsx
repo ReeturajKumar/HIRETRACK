@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Company, Job } from "@/lib/generated/prisma";
+import { Company, Job } from "@/lib/types/models";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { Loader2, Plus } from "lucide-react";
@@ -49,7 +49,7 @@ const CompnayDetailsPageContent = ({
       <div className="flex-col w-full px-4">
         <div className="w-full flex items-center justify-between -mt-12">
           <div className="flex items-end justify-end space-x-4">
-            {company?.logo && (
+            {(company?.logo && company.logo.trim() !== "") && (
               <div className="aspect-square w-auto bg-white dark:bg-[#141416] h-32 rounded-4xl border flex items-center justify-center relative overflow-hidden p-3">
                 <Image
                   src={company?.logo}

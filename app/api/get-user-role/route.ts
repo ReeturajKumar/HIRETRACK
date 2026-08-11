@@ -1,7 +1,7 @@
 // ✅ Correct export for App Router API route
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import db from "@/lib/db";
+import getDb from "@/lib/db";
 
 export async function GET() {
   const user = await currentUser();
@@ -10,9 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dbUser = await db.user.findUnique({
-    where: { clerkId: user.id },
-  });
+  const db = await getDb();
+  const dbUser = await db.collection("User").findOne({ clerkId: user.id });
 
   if (!dbUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
